@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T-Soft VR — Промышленные VR-тренажёры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ── */
+:root {
+  --bg: #000;
+  --surface: rgba(255,255,255,.07);
+  --surface-hover: rgba(255,255,255,.11);
+  --border: rgba(255,255,255,.11);
+  --border-strong: rgba(255,255,255,.2);
+  --text-1: #f5f5f7;
+  --text-2: #86868b;
+  --text-3: #48484a;
+  --blur: blur(24px);
+  --radius-pill: 100px;
+  --radius-card: 20px;
+  --radius-card-sm: 14px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Slide engine ── */
+.deck { position: relative; width: 100vw; height: 100vh; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 72px 96px;
+  opacity: 0;
+  transform: translateY(24px) scale(.99);
+  transition: opacity .55s cubic-bezier(.4,0,.2,1),
+              transform .55s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  will-change: opacity, transform;
+  overflow: hidden;
+}
+.slide.active {
+  opacity: 1; transform: none;
+  pointer-events: all;
+}
+.slide.exit {
+  opacity: 0; transform: translateY(-16px) scale(1.01);
+}
+
+/* ── Badge / pill ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-2);
+  width: fit-content; margin-bottom: 22px;
+}
+
+/* ── Typography ── */
+.h1 {
+  font-size: clamp(40px, 5.2vw, 76px);
+  font-weight: 800; line-height: 1.03;
+  letter-spacing: -.04em;
+  color: var(--text-1); margin-bottom: 18px;
+}
+.h2 {
+  font-size: clamp(30px, 4vw, 56px);
+  font-weight: 700; line-height: 1.07;
+  letter-spacing: -.03em;
+  color: var(--text-1); margin-bottom: 14px;
+}
+.h3 {
+  font-size: clamp(20px, 2.4vw, 36px);
+  font-weight: 700; line-height: 1.1;
+  letter-spacing: -.025em;
+  color: var(--text-1); margin-bottom: 10px;
+}
+.lead {
+  font-size: clamp(15px, 1.5vw, 20px);
+  font-weight: 400; line-height: 1.65;
+  color: var(--text-2); max-width: 600px;
+}
+.body {
+  font-size: clamp(13px, 1.2vw, 15px);
+  font-weight: 400; line-height: 1.6;
+  color: var(--text-2);
+}
+
+/* ── Glass card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  padding: 28px 30px;
+  transition: background .2s;
+}
+.card-sm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card-sm);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  padding: 20px 24px;
+}
+.card:hover { background: var(--surface-hover); }
+
+/* ── Grids ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+/* ── Stat block ── */
+.stat-n {
+  font-size: clamp(44px, 5.5vw, 76px);
+  font-weight: 800; letter-spacing: -.05em;
+  color: #fff; line-height: 1;
+}
+.stat-lbl {
+  font-size: 14px; font-weight: 600;
+  color: var(--text-1); margin: 8px 0 4px;
+}
+.stat-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+/* ── Divider ── */
+.hr { width: 100%; height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ── Source note ── */
+.src { font-size: 11px; color: var(--text-3); margin-top: 18px; }
+
+/* ── Card heading ── */
+.c-title {
+  font-size: 15px; font-weight: 700;
+  color: var(--text-1); margin-bottom: 7px;
+  letter-spacing: -.01em;
+}
+.c-body { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+
+/* ── Icon chip ── */
+.icon-chip {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: rgba(255,255,255,.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 14px; flex-shrink: 0;
+}
+
+/* ── Timeline (process) ── */
+.timeline { display: flex; gap: 0; margin-top: 28px; }
+.t-step {
+  flex: 1; padding: 24px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+.t-step:first-child { border-radius: var(--radius-card) 0 0 var(--radius-card); }
+.t-step:last-child  { border-radius: 0 var(--radius-card) var(--radius-card) 0; }
+.t-step + .t-step   { border-left: none; }
+.t-num {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+}
+.t-title { font-size: 15px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+.t-body  { font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
+
+/* ── CTA buttons ── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 30px; border-radius: var(--radius-pill);
+  background: #fff; color: #000;
+  font-size: 15px; font-weight: 700;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: opacity .2s;
+}
+.btn-primary:hover { opacity: .88; }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 30px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent; color: var(--text-1);
+  font-size: 15px; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  transition: background .2s;
+}
+.btn-outline:hover { background: rgba(255,255,255,.07); }
+
+/* ── Gradient text ── */
+.grad {
+  background: linear-gradient(120deg, #fff 30%, #86868b 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Fixed chrome ── */
+.logo {
+  position: fixed; top: 28px; left: 44px;
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,.45);
+  letter-spacing: .01em; z-index: 200;
+  pointer-events: none;
+}
+
+/* ── Nav bar ── */
+.nav {
+  position: fixed; bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 18px;
+  padding: 10px 22px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  z-index: 200;
+}
+.nav-btn {
+  width: 30px; height: 30px;
+  border-radius: 50%; border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,.07);
+  color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; transition: background .2s;
+  user-select: none;
+}
+.nav-btn:hover { background: rgba(255,255,255,.15); }
+.nav-btn:disabled { opacity: .3; cursor: default; }
+.slide-num {
+  font-size: 12px; color: var(--text-2);
+  font-weight: 500; min-width: 36px; text-align: center;
+}
+.dots { display: flex; gap: 5px; align-items: center; }
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,.22);
+  transition: all .3s ease; cursor: pointer;
+}
+.dot.on { width: 18px; border-radius: 3px; background: #fff; }
+
+/* ── Fullscreen hint ── */
+.hint {
+  position: fixed; top: 28px; right: 44px;
+  font-size: 11px; color: var(--text-3);
+  z-index: 200; pointer-events: none;
+}
+
+/* ── Hero slide ── */
+#s1 {
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+.hero-left {
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 80px 64px 80px 96px;
+}
+.hero-right {
+  position: relative; overflow: hidden;
+}
+.hero-right img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.hero-right::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, #000 0%, transparent 40%);
+}
+
+/* ── Slide 2 — Problem ── */
+#s2 .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 28px; }
+
+/* ── Slide 4 — Capabilities ── */
+#s4 .cap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+#s4 .cap-grid .card:nth-child(4) { grid-column: span 1; }
+#s4 .cap-grid .card:nth-child(5) { grid-column: span 1; }
+
+/* ── Slide 5 — Numbers ── */
+#s5 .nums { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+
+/* ── Slide 6 — Neuro ── */
+#s6 .neuro { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+
+/* ── Slide 7 — Tech ── */
+#s7 .tech-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.tech-row {
+  display: flex; align-items: center; gap: 18px;
+  padding: 18px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.tech-row .icon-chip { margin-bottom: 0; }
+.tech-info { flex: 1; }
+.tech-name { font-size: 14px; font-weight: 700; color: var(--text-1); margin-bottom: 3px; }
+.tech-spec { font-size: 12.5px; color: var(--text-2); }
+
+/* ── Slide 9 — Industries ── */
+#s9 .ind { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+.ind-card {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card-sm);
+}
+.ind-icon { font-size: 24px; }
+.ind-title { font-size: 14px; font-weight: 700; color: var(--text-1); }
+.ind-body  { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+
+/* ── Slide 10 — Clients ── */
+#s10 .clients { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+.client-card {
+  padding: 26px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+.client-name { font-size: 20px; font-weight: 800; color: var(--text-1); margin-bottom: 8px; letter-spacing: -.02em; }
+.client-desc { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+
+/* ── Slide 11 — CTA ── */
+#s11 { justify-content: center; align-items: center; text-align: center; }
+#s11 .h2 { max-width: 700px; }
+#s11 .lead { text-align: center; margin: 0 auto; }
+#s11 .cta-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 36px; width: 100%; max-width: 800px; }
+#s11 .cta-row { display: flex; gap: 14px; margin-top: 28px; justify-content: center; }
+#s11 .contact {
+  margin-top: 28px; font-size: 14px; color: var(--text-2);
+}
+#s11 .contact a { color: var(--text-1); text-decoration: none; }
+#s11 .contact a:hover { opacity: .7; }
+
+/* ──────── Split-panel slides ──────── */
+#s2, #s10 { padding: 0; display: grid; grid-template-columns: 3fr 2fr; align-items: stretch; }
+#s3        { padding: 0; display: grid; grid-template-columns: 2fr 3fr; align-items: stretch; }
+#s7        { padding: 0; display: grid; grid-template-columns: 3fr 2fr; align-items: stretch; }
+
+.s-pane   { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.s-pane-l { padding: 64px 52px 64px 96px; }
+.s-pane-r { padding: 64px 96px 64px 52px; }
+
+.s-img     { position: relative; overflow: hidden; }
+.s-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.s-img::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to right, #000 0%, rgba(0,0,0,.18) 48%, transparent 100%);
+}
+.s-img.from-r::after {
+  background: linear-gradient(to left, #000 0%, rgba(0,0,0,.18) 48%, transparent 100%);
+}
+
+/* ──────── Full-bleed bg image ──────── */
+.slide-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.slide-bg img { width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: brightness(0.15) saturate(0.4); }
+.slide-bg::after { content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 150% 130% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.62) 100%); }
+
+/* ──────── Industry card image ──────── */
+.ind-img { width: 100%; height: 64px; object-fit: cover;
+  border-radius: 8px; opacity: .78; flex-shrink: 0; }
+
+/* == PRINT OVERRIDES == */
+html { overflow: hidden !important; height: 11880px !important; width: 1920px !important; }
+body { overflow: hidden !important; height: 11880px !important; width: 1920px !important; }
+.deck { position: static !important; width: 1920px !important; height: 11880px !important; display: block !important; overflow: hidden !important; }
+.slide {
+  position: relative !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: none !important;
+  width: 1920px !important;
+  height: 1080px !important;
+  page-break-after: always !important;
+  break-after: page !important;
+  overflow: hidden !important;
+  will-change: auto !important;
+  transition: none !important;
+}
+#s1  { display: grid !important; }
+#s2, #s10 { display: grid !important; }
+#s3  { display: grid !important; }
+#s7  { display: grid !important; }
+#s11 { display: flex !important; }
+#s11 { page-break-after: auto !important; break-after: auto !important; }
+.logo, .hint, .nav { display: none !important; }
+@page { size: 1920px 1080px; margin: 0; }
+
+</style>
+</head>
+<body>
+
+<div class="logo">T-Soft VR</div>
+<div class="hint">F — полный экран · ← → — слайды</div>
+
+<!-- ═══════════════ SLIDES ═══════════════ -->
+<div class="deck" id="deck">
+
+<!-- ── Slide 1: Hero ── -->
+<div class="slide active" id="s1">
+  <div class="hero-left">
+    <div class="badge">Промышленные VR-тренажёры</div>
+    <h1 class="h1">T-Soft VR —<br>Новое поколение<br>промышленного<br>обучения</h1>
+    <p class="lead">Технологии виртуальной реальности на службе безопасности и эффективности. Готовьте персонал к любым ситуациям — без рисков, без простоев, без границ.</p>
+  </div>
+  <div class="hero-right">
+    <img src="https://images.unsplash.com/photo-1626379953822-baec19c3accd?w=900&q=85&fit=crop" alt="VR Industrial Training" onerror="this.parentElement.style.background='linear-gradient(135deg,#111 0%,#1a1a2e 100%)'">
+  </div>
+</div>
+
+<!-- ── Slide 2: Problem ── -->
+<div class="slide" id="s2">
+  <div class="s-pane s-pane-l">
+    <div class="badge">Проблема</div>
+    <h2 class="h2">В КТК ты знаешь, что делать при аварии.<br>В VR — ты это <span class="grad">делал</span>.</h2>
+    <p class="lead">КТК закрывает теорию. Но есть то, чего он не может дать.</p>
+    <div class="stats">
+      <div class="card">
+        <div class="stat-n">80%</div>
+        <div class="stat-lbl">Ошибки персонала</div>
+        <div class="stat-desc">производственных аварий — ошибки в нештатных ситуациях</div>
+      </div>
+      <div class="card">
+        <div class="stat-n">10–20%</div>
+        <div class="stat-lbl">Усвоение при инструктаже</div>
+        <div class="stat-desc">через месяц остаётся менее 30% знаний — когнитивная психология</div>
+      </div>
+      <div class="card">
+        <div class="stat-n">70%</div>
+        <div class="stat-lbl">Провал без практики</div>
+        <div class="stat-desc">сотрудников не могут выполнить аварийную процедуру без тренировок</div>
+      </div>
+    </div>
+    <div class="src">Источники: Ростехнадзор · HSE · OSHA · когнитивная психология</div>
+  </div>
+  <div class="s-img">
+    <img src="./img/slide2.jpg" alt="Oil refinery industrial facility" onerror="this.parentElement.style.background='linear-gradient(160deg,#0d1b2a 0%,#1b2838 100%)'">
+  </div>
+</div>
+
+<!-- ── Slide 3: Solution ── -->
+<div class="slide" id="s3">
+  <div class="s-img from-r">
+    <img src="./img/slide3.jpg" alt="VR Training in action" onerror="this.parentElement.style.background='linear-gradient(160deg,#0a1628 0%,#162032 100%)'">
+  </div>
+  <div class="s-pane s-pane-r">
+    <div class="badge">Решение</div>
+    <h2 class="h2">VR-тренажёры T-Soft:<br>обучение без компромиссов</h2>
+    <p class="lead">Полноценная цифровая копия вашего производства — сотрудники тренируются снова и снова в полной безопасности.</p>
+    <div class="g2" style="margin-top:22px;">
+      <div class="card">
+        <div class="icon-chip">🏭</div>
+        <div class="c-title">Полное погружение</div>
+        <div class="c-body">Реалистичная производственная среда с точностью до деталей</div>
+      </div>
+      <div class="card">
+        <div class="icon-chip">🔥</div>
+        <div class="c-title">Безопасная практика</div>
+        <div class="c-body">Пожары, разливы, поломки — все критические сценарии без риска</div>
+      </div>
+      <div class="card">
+        <div class="icon-chip">⚡</div>
+        <div class="c-title">Без остановок производства</div>
+        <div class="c-body">Производство работает, пока сотрудники проходят обучение</div>
+      </div>
+      <div class="card">
+        <div class="icon-chip">🔄</div>
+        <div class="c-title">Многократное повторение</div>
+        <div class="c-body">Любое количество тренировок без износа оборудования</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Slide 4: Capabilities ── -->
+<div class="slide" id="s4">
+  <div class="badge">Возможности платформы</div>
+  <h2 class="h2">Что умеет наш симулятор</h2>
+  <div class="cap-grid">
+    <div class="card">
+      <div class="icon-chip">🗺️</div>
+      <div class="c-title">Точная 3D-копия объекта</div>
+      <div class="c-body">Воссоздаём ваш реальный цех, подстанцию или установку с максимальной точностью</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">🎭</div>
+      <div class="c-title">Разнообразные сценарии</div>
+      <div class="c-body">Штатная работа, пожар, разлив химикатов, поломки оборудования и нестандартные ситуации</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">👥</div>
+      <div class="c-title">Мультипользовательский режим</div>
+      <div class="c-body">Тренировка целых бригад одновременно — отработка командного взаимодействия</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">📊</div>
+      <div class="c-title">Аналитика в реальном времени</div>
+      <div class="c-body">Детальный отчёт по действиям каждого сотрудника — ошибки, время реакции, правильность процедур</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">🔗</div>
+      <div class="c-title">Интеграция с LMS</div>
+      <div class="c-body">Бесшовное подключение к корпоративным системам управления обучением</div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;border-style:dashed;opacity:.5;">
+      <div style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">+</div>
+        <div class="c-body">Кастомные сценарии под ваш объект</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Slide 5: Stats ── -->
+<div class="slide" id="s5">
+  <div class="slide-bg">
+    <img src="./img/slide5bg.jpg" alt="" onerror="this.parentElement.style.background='#000'">
+  </div>
+  <div class="badge">Результаты</div>
+  <h2 class="h2">Цифры, которые говорят<br>сами за себя</h2>
+  <p class="lead">Внедрение VR-тренажёров T-Soft даёт измеримый и подтверждённый результат уже в первые месяцы работы.</p>
+  <div class="nums">
+    <div class="card">
+      <div class="stat-n grad">45%</div>
+      <div class="stat-lbl">Снижение травматизма</div>
+      <div class="stat-desc">Сокращение производственного травматизма после внедрения VR-тренажёров</div>
+    </div>
+    <div class="card">
+      <div class="stat-n grad">4×</div>
+      <div class="stat-lbl">Скорость усвоения</div>
+      <div class="stat-desc">Быстрее усвоение навыков по сравнению с традиционным инструктажем</div>
+    </div>
+    <div class="card">
+      <div class="stat-n grad">90%</div>
+      <div class="stat-lbl">Удержание навыков</div>
+      <div class="stat-desc">VR-обученные сохраняют до 90% навыков спустя неделю против 10–20% при традиционном инструктаже</div>
+    </div>
+    <div class="card">
+      <div class="stat-n grad">275%</div>
+      <div class="stat-lbl">Уверенность персонала</div>
+      <div class="stat-desc">Рост уверенности сотрудников в применении навыков на практике</div>
+    </div>
+  </div>
+  <div class="src">* PwC VR Workforce Study · SimLab Industry Report · VR Vision Group Research · National Training Laboratories</div>
+</div>
+
+<!-- ── Slide 6: Neuroscience ── -->
+<div class="slide" id="s6">
+  <div class="slide-bg">
+    <img src="./img/slide6bg.jpg" alt="" onerror="this.parentElement.style.background='#000'">
+  </div>
+  <div class="badge">Наука</div>
+  <h2 class="h2">Почему VR работает:<br>нейронаука</h2>
+  <p class="lead">Мозг не отличает высококачественную VR от реальности на нейронном уровне.</p>
+  <div class="neuro">
+    <div class="card">
+      <div class="icon-chip">🧠</div>
+      <div class="c-title">Гиппокамп</div>
+      <div class="c-body">Формирует эпизодические воспоминания. VR-опыт кодируется мозгом как настоящие события — та же нейронная активность, что и в реальности. Навык закладывается в 3–5 раз лучше нейтрального.</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">⚡</div>
+      <div class="c-title">Миндалевидное тело</div>
+      <div class="c-body">Симуляция опасных сценариев вызывает реальный стресс-ответ (кортизол, адреналин). Это мощно закрепляет опыт. Навык отрабатывается в 3–5 раз лучше нейтрального.</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">🤲</div>
+      <div class="c-title">Моторная кора и мозжечок</div>
+      <div class="c-body">Физические действия в VR активируют те же двигательные нейронные пути, что и в реальности. Формируется настоящая мышечная память.</div>
+    </div>
+    <div class="card">
+      <div class="icon-chip">🔁</div>
+      <div class="c-title">Нейропластичность</div>
+      <div class="c-body">Повторные VR-тренировки физически перестраивают нейронные связи. Навык закрепляется так же, как при реальной практике.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Slide 7: Technology ── -->
+<div class="slide" id="s7">
+  <div class="s-pane s-pane-l">
+    <div class="badge">Технологии</div>
+    <h2 class="h2">Технологии мирового уровня</h2>
+    <p class="lead">Соответствуют корпоративным требованиям безопасности и масштабируемости.</p>
+    <div class="tech-list">
+      <div class="tech-row">
+        <div class="icon-chip">🥽</div>
+        <div class="tech-info">
+          <div class="tech-name">VR-шлемы</div>
+          <div class="tech-spec">HTC Vive, Meta Quest, Varjo — оборудование последнего поколения для максимального погружения</div>
+        </div>
+      </div>
+      <div class="tech-row">
+        <div class="icon-chip">🤚</div>
+        <div class="tech-info">
+          <div class="tech-name">Физика и хаптика</div>
+          <div class="tech-spec">Реалистичная физическая симуляция и тактильная обратная связь для ощущения реального взаимодействия</div>
+        </div>
+      </div>
+      <div class="tech-row">
+        <div class="icon-chip">🖥️</div>
+        <div class="tech-info">
+          <div class="tech-name">Серверное решение</div>
+          <div class="tech-spec">Корпоративная инфраструктура с соблюдением требований безопасности и изоляции данных</div>
+        </div>
+      </div>
+      <div class="tech-row">
+        <div class="icon-chip">☁️</div>
+        <div class="tech-info">
+          <div class="tech-name">Облачные обновления</div>
+          <div class="tech-spec">Автоматическое обновление контента и сценариев без участия IT-департамента</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="s-img">
+    <img src="./img/slide7.jpg" alt="VR headset technology" onerror="this.parentElement.style.background='linear-gradient(160deg,#0f0f1a 0%,#1a1a2e 100%)'">
+  </div>
+</div>
+
+<!-- ── Slide 8: Process ── -->
+<div class="slide" id="s8">
+  <div class="badge">Процесс внедрения</div>
+  <h2 class="h2">Как это работает:<br>от идеи до результата</h2>
+  <p class="lead">Мы берём на себя полный цикл. Вам не нужны специальные знания, чтобы начать.</p>
+  <div class="timeline">
+    <div class="t-step">
+      <div class="t-num">Шаг 01</div>
+      <div class="t-title">🔍 Аудит</div>
+      <div class="t-body">Изучаем ваш объект, задачи обучения и специфику производственных процессов</div>
+    </div>
+    <div class="t-step">
+      <div class="t-num">Шаг 02</div>
+      <div class="t-title">⚙️ Разработка</div>
+      <div class="t-body">Создаём точную 3D-среду и прорабатываем сценарии под ваши реальные процессы</div>
+    </div>
+    <div class="t-step">
+      <div class="t-num">Шаг 03</div>
+      <div class="t-title">🚀 Внедрение</div>
+      <div class="t-body">Поставка оборудования, установка платформы, обучение инструкторов и администраторов</div>
+    </div>
+    <div class="t-step">
+      <div class="t-num">Шаг 04</div>
+      <div class="t-title">🛡️ Поддержка</div>
+      <div class="t-body">Обновление сценариев по мере изменений на производстве, техподдержка 24/7</div>
+    </div>
+  </div>
+  <div style="margin-top:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+    <div class="card-sm" style="text-align:center;">
+      <div style="font-size:22px;font-weight:800;color:#fff;">6–8</div>
+      <div class="stat-lbl" style="margin:4px 0 0;">недель</div>
+      <div class="stat-desc">от аудита до первой тренировки</div>
+    </div>
+    <div class="card-sm" style="text-align:center;">
+      <div style="font-size:22px;font-weight:800;color:#fff;">ВКЛЮЧЕНА</div>
+      <div class="stat-lbl" style="margin:4px 0 0;">Поставка</div>
+      <div class="stat-desc">оборудование входит в проект</div>
+    </div>
+    <div class="card-sm" style="text-align:center;">
+      <div style="font-size:22px;font-weight:800;color:#fff;">24/7</div>
+      <div class="stat-lbl" style="margin:4px 0 0;">Поддержка</div>
+      <div class="stat-desc">техническая и контентная</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Slide 9: Industries ── -->
+<div class="slide" id="s9">
+  <div class="badge">Отрасли</div>
+  <h2 class="h2">Кому подходит T-Soft VR</h2>
+  <p class="lead">Наши решения разработаны для предприятий, где цена ошибки максимально высока.</p>
+  <div class="ind">
+    <div class="ind-card">
+      <img class="ind-img" src="./img/slide9_oil.jpg" alt="" onerror="this.style.display='none'">
+      <div class="ind-icon">🛢️</div>
+      <div class="ind-title">Нефтегазовая отрасль</div>
+      <div class="ind-body">Работа на опасных объектах: скважины, НПЗ, установки, трубопроводы</div>
+    </div>
+    <div class="ind-card">
+      <img class="ind-img" src="./img/slide9_energy.jpg" alt="" onerror="this.style.display='none'">
+      <div class="ind-icon">⚡</div>
+      <div class="ind-title">Энергетика</div>
+      <div class="ind-body">Обслуживание подстанций, высоковольтного и электрооборудования, ликвидация аварий</div>
+    </div>
+    <div class="ind-card">
+      <img class="ind-img" src="./img/slide9_engineering.jpg" alt="" onerror="this.style.display='none'">
+      <div class="ind-icon">⚙️</div>
+      <div class="ind-title">Машиностроение</div>
+      <div class="ind-body">Управление крупным оборудованием, техническое обслуживание и ремонт</div>
+    </div>
+    <div class="ind-card">
+      <img class="ind-img" src="./img/slide9_mining.jpg" alt="" onerror="this.style.display='none'">
+      <div class="ind-icon">⛏️</div>
+      <div class="ind-title">Горнодобывающая промышленность</div>
+      <div class="ind-body">Подземные выработки, взрывные работы, эвакуация в экстренных ситуациях</div>
+    </div>
+    <div class="ind-card">
+      <img class="ind-img" src="./img/slide9_chemical.jpg" alt="" onerror="this.style.display='none'">
+      <div class="ind-icon">☢️</div>
+      <div class="ind-title">Атомная и химическая промышленность</div>
+      <div class="ind-body">Работа с радиоактивными и химически опасными веществами, аварийные протоколы</div>
+    </div>
+    <div class="ind-card" style="background:transparent;border-style:dashed;opacity:.4;align-items:center;justify-content:center;">
+      <div class="ind-body" style="text-align:center;">Ваша отрасль?<br>Свяжитесь с нами</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Slide 10: Clients ── -->
+<div class="slide" id="s10">
+  <div class="s-pane s-pane-l">
+    <div class="badge">О нас</div>
+    <h2 class="h2">Нам доверяют ведущие<br>промышленные предприятия</h2>
+    <div class="clients">
+      <div class="client-card">
+        <div class="client-name">Газпром</div>
+        <div class="client-desc">Крупнейшая газовая компания России. VR-тренажёры для промышленных объектов. Многопользовательские симуляции аварийных ситуаций.</div>
+      </div>
+      <div class="client-card">
+        <div class="client-name">Газпром Нефть</div>
+        <div class="client-desc">МНПз (Москва) и ОНПЗ (Омск). VR-симуляция установок нефтепереработки, 4 сценария ПЛА.</div>
+      </div>
+      <div class="client-card">
+        <div class="client-name">СИБУР</div>
+        <div class="client-desc">ЗапСибНефтехим, Тобольск. 3D-модели нефтехимических установок: перегонка, полипропилен.</div>
+      </div>
+      <div class="client-card">
+        <div class="client-name">ADNOC</div>
+        <div class="client-desc">Abu Dhabi National Oil Company, ОАЭ. VR-тренажёр для международного нефтеперерабатывающего комплекса, двуязычный интерфейс RU/EN.</div>
+      </div>
+    </div>
+  </div>
+  <div class="s-img">
+    <img src="./img/slide10.jpg" alt="Industrial partnership" onerror="this.parentElement.style.background='linear-gradient(160deg,#0a0a1e 0%,#1a0a2e 100%)'">
+  </div>
+</div>
+
+<!-- ── Slide 11: CTA ── -->
+<div class="slide" id="s11">
+  <div class="slide-bg">
+    <img src="./img/slide11bg.jpg" alt="" onerror="this.parentElement.style.background='linear-gradient(160deg,#050510 0%,#0d0d25 100%)'">
+  </div>
+  <div class="badge">Следующий шаг</div>
+  <h2 class="h2" style="max-width:680px;margin:0 auto 14px;">Начните с бесплатного<br>демо уже сегодня</h2>
+  <p class="lead" style="text-align:center;margin:0 auto;">Убедитесь в эффективности T-Soft VR на собственном опыте. Мы приедем на ваш объект, проведём демонстрацию и рассчитаем индивидуальный ROI — бесплатно и без обязательств.</p>
+  <div class="cta-cards">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:28px;margin-bottom:10px;">🎯</div>
+      <div class="c-title">Бесплатная демонстрация</div>
+      <div class="c-body">Живой показ системы непосредственно на вашем объекте — без затрат с вашей стороны</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:28px;margin-bottom:10px;">🚀</div>
+      <div class="c-title">Пилотный проект за 30 дней</div>
+      <div class="c-body">Запуск полноценного пилота в кратчайшие сроки — вы видите результат до принятия решения</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:28px;margin-bottom:10px;">📈</div>
+      <div class="c-title">Расчёт ROI</div>
+      <div class="c-body">Индивидуальный расчёт окупаемости под вашу задачу — прозрачные цифры и обоснование</div>
+    </div>
+  </div>
+  <div class="cta-row">
+    <a href="tel:+79046340203" class="btn-primary">📞 +7 904 634 02-03</a>
+    <a href="mailto:office@t-softco.com" class="btn-outline">office@t-softco.com</a>
+  </div>
+  <div class="contact" style="margin-top:16px;">t-softco.com/vr · Санкт-Петербург</div>
+</div>
+
+</div><!-- /deck -->
+
+  <span class="slide-num" id="counter">1 / 11</span>
+  <button class="nav-btn" id="next" onclick="go(1)">→</button>
+</div>
+
+
+</body>
+</html>
