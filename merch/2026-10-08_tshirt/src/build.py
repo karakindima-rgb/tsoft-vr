@@ -23,6 +23,9 @@ NAVY = "#0A2646"
 BLUE = "#015AFD"
 BLUE_LIGHT = "#89B2FF"
 WHITE = "#FFFFFF"
+# Тональная краска для концепции 1: на тон светлее полотна, подбирается по пробнику.
+# В палитру бренда не входит, это технологический цвет печати.
+TONAL = "#1A3A62"
 
 
 # ---------------------------------------------------------------- текст → кривые
@@ -96,35 +99,30 @@ def doc(w, h, body, title):
             f'viewBox="0 0 {w} {h}">\n<title>{title}</title>\n{body}\n</svg>\n')
 
 
-# ---------------------------------------------------------------- концепция A «Слоган»
+# ---------------------------------------------------------------- 1 «Тон в тон»
 
-def a_front():
-    g, h = logo("tsoft-logo-ru-inverse", 0, 0, 100)
-    return doc(100, round(h, 2), g, "A — грудь: логотип Т-Софт, 100 мм")
-
-
-def a_back():
-    W = 280
-    icon, ih = logo("tsoft-icon-white", W / 2 - 18, 0, 36)
-    size = 30
-    l1, l2 = "Готовы до того,", "как случится."
-    # кегль подбирается так, чтобы длинная строка заняла ширину макета
-    size = size * W / measure(l1, "InterDisplay-Bold", size, -0.01)
-    y1 = ih + 18 + size * 0.73
-    y2 = y1 + size * 1.08
-    parts = [
-        icon,
-        text(l1, "InterDisplay-Bold", size, W / 2, y1, WHITE, "middle", -0.01),
-        text(l2, "InterDisplay-Bold", size, W / 2, y2, BLUE_LIGHT, "middle", -0.01),
-    ]
-    y3 = y2 + 36
-    parts.append(f'<rect x="{W/2-20}" y="{y2+16}" width="40" height="1" fill="{BLUE_LIGHT}"/>')
-    parts.append(text("КТК · OTS · VR-ТРЕНАЖЁРЫ · МАТЕМАТИЧЕСКИЕ МОДЕЛИ",
-                      "Inter-SemiBold", 7.4, W / 2, y3, WHITE, "middle", 0.1))
-    return doc(W, round(y3 + 2, 2), "\n".join(parts), "A — спина: слоган")
+def s1_front():
+    g, h = logo("tsoft-icon-white", 0, 0, 40)
+    return doc(40, round(h, 2), g, "1 — грудь: знак, вышивка белой нитью, 40 мм")
 
 
-# ---------------------------------------------------------------- концепция B «Схема»
+def s1_back():
+    W = 270
+    lines = ["Готовы", "до того, как", "случится."]
+    ref = max(measure(l, "InterDisplay-Bold", 10, -0.02) for l in lines)
+    size = 10 * W / ref
+    parts, y = [], size * 0.73
+    for l in lines:
+        parts.append(text(l, "InterDisplay-Bold", size, 0, y, TONAL, "start", -0.02))
+        y += size * 0.98
+    y += 4
+    g, h = logo("tsoft-icon-white", 0, y, 22)
+    parts.append(g)
+    parts.append(text("КТК · OTS · VR-ТРЕНАЖЁРЫ", "Inter-SemiBold", 6.4, 30, y + h / 2 + 2.3,
+                      BLUE_LIGHT, "start", 0.12))
+    return doc(W, round(y + h, 2), "\n".join(parts), "1 — спина: тональный слоган")
+
+# ---------------------------------------------------------------- 2 «Схема»
 
 def scheme(ox, oy):
     """Технологическая схема ректификации: Т-1 → К-1 → Х-1 → Е-1 → Н-1/Н-2."""
@@ -231,12 +229,12 @@ def scheme(ox, oy):
     return f'<g transform="translate({ox} {oy})">' + "\n".join(el) + "</g>"
 
 
-def b_front():
+def s2_front():
     g, h = logo("tsoft-icon-white", 0, 0, 55)
-    return doc(55, round(h, 2), g, "B — грудь: знак Т-Софт, 55 мм")
+    return doc(55, round(h, 2), g, "2 — грудь: знак Т-Софт, 55 мм")
 
 
-def b_back():
+def s2_back():
     W = 280
     parts = [text("МОДЕЛЬ  →  ЭМУЛЯЦИЯ  →  ОТРАБОТКА", "Inter-SemiBold", 7.6, W / 2, 7,
                   BLUE_LIGHT, "middle", 0.12)]
@@ -244,17 +242,17 @@ def b_back():
     parts.append(text("Модель, а не картинка.", "InterDisplay-Bold", 21, W / 2, 292, WHITE, "middle", -0.01))
     g, h = logo("tsoft-logo-ru-inverse", W / 2 - 34, 306, 68)
     parts.append(g)
-    return doc(W, round(306 + h, 2), "\n".join(parts), "B — спина: технологическая схема")
+    return doc(W, round(306 + h, 2), "\n".join(parts), "2 — спина: технологическая схема")
 
 
-# ---------------------------------------------------------------- концепция C «Журнал тренажёра»
+# ---------------------------------------------------------------- 4 «Журнал тренажёра»
 
-def c_front():
+def s4_front():
     g, h = logo("tsoft-logo-ru-color", 0, 0, 100)
-    return doc(100, round(h, 2), g, "C — грудь: логотип Т-Софт, 100 мм")
+    return doc(100, round(h, 2), g, "4 — грудь: логотип Т-Софт, 100 мм")
 
 
-def c_back():
+def s4_back():
     W = 280
     tnum = {"kern": True, "tnum": True}
     p = [text("ЖУРНАЛ ТРЕНАЖЁРА · СЦЕНАРИЙ 07", "Inter-SemiBold", 7.4, 0, 7, BLUE, "start", 0.12)]
@@ -281,7 +279,153 @@ def c_back():
     p.append(text("Сценарий пройден", "InterDisplay-Bold", size, 44, y, NAVY))
     y += 32
     p.append(text("Готовы до того, как случится.", "InterDisplay-SemiBold", 14, 0, y, BLUE))
-    return doc(W, round(y + 3, 2), "\n".join(p), "C — спина: журнал тренажёра")
+    return doc(W, round(y + 3, 2), "\n".join(p), "4 — спина: журнал тренажёра")
+
+
+
+# ---------------------------------------------------------------- 3 «Каркас»
+
+def wireframe(width):
+    """Каркасная 3D-модель колонны с ёмкостью, ортогональная проекция."""
+    import math
+    rot, tilt = math.radians(-32), math.radians(24)
+
+    def P(x, y, z):  # y — вверх
+        x1 = x * math.cos(rot) - z * math.sin(rot)
+        z1 = x * math.sin(rot) + z * math.cos(rot)
+        return x1, -(y * math.cos(tilt) - z1 * math.sin(tilt))
+
+    segs = []  # (точки, толщина)
+
+    def poly(pts, w=0.7, closed=False):
+        pts = [P(*q) for q in pts]
+        if closed:
+            pts.append(pts[0])
+        segs.append((pts, w))
+
+    N = 12
+    ang = [2 * math.pi * i / N for i in range(N)]
+    R, H = 1.25, 7.6
+    # колонна: кольца, образующие, купол
+    for y in [0.0, 0.95, 1.9, 2.85, 3.8, 4.75, 5.7, 6.65, H]:
+        poly([(R * math.cos(a), y, R * math.sin(a)) for a in ang], closed=True)
+    for a in ang:
+        poly([(R * math.cos(a), 0, R * math.sin(a)), (R * math.cos(a), H, R * math.sin(a))])
+    for k in (1, 2, 3):
+        t = k * math.pi / 8
+        poly([(R * math.cos(t) * math.cos(a), H + R * math.sin(t), R * math.cos(t) * math.sin(a))
+              for a in ang], closed=True)
+    for a in ang:
+        poly([(R * math.cos(t) * math.cos(a), H + R * math.sin(t), R * math.cos(t) * math.sin(a))
+              for t in [k * math.pi / 8 for k in range(5)]])
+    # юбка
+    poly([(1.5 * math.cos(a), -0.6, 1.5 * math.sin(a)) for a in ang], closed=True)
+    for a in ang[::2]:
+        poly([(R * math.cos(a), 0, R * math.sin(a)), (1.5 * math.cos(a), -0.6, 1.5 * math.sin(a))])
+    # площадки обслуживания с ограждением
+    for y in (2.6, 6.0):
+        for r in (1.95,):
+            poly([(r * math.cos(a), y, r * math.sin(a)) for a in ang], closed=True)
+            poly([(r * math.cos(a), y + 0.45, r * math.sin(a)) for a in ang], 0.5, closed=True)
+            for a in ang:
+                poly([(r * math.cos(a), y, r * math.sin(a)), (r * math.cos(a), y + 0.45, r * math.sin(a))], 0.5)
+    # лестница
+    lx, lz = 1.45 * math.cos(-0.9), 1.45 * math.sin(-0.9)
+    dx, dz = 0.22 * math.sin(-0.9), -0.22 * math.cos(-0.9)
+    poly([(lx + dx, -0.6, lz + dz), (lx + dx, 6.0, lz + dz)], 0.5)
+    poly([(lx - dx, -0.6, lz - dz), (lx - dx, 6.0, lz - dz)], 0.5)
+    for i in range(0, 22):
+        y = -0.3 + i * 0.3
+        poly([(lx + dx, y, lz + dz), (lx - dx, y, lz - dz)], 0.5)
+    # горизонтальная ёмкость на опорах
+    cx, cy, cz, r, L = 3.2, 1.2, 1.2, 0.65, 2.4
+    for x in [cx - L / 2 + i * L / 4 for i in range(5)]:
+        poly([(x, cy + r * math.cos(a), cz + r * math.sin(a)) for a in ang], closed=True)
+    for a in ang:
+        poly([(cx - L / 2, cy + r * math.cos(a), cz + r * math.sin(a)),
+              (cx + L / 2, cy + r * math.cos(a), cz + r * math.sin(a))])
+    for x in (cx - 0.8, cx + 0.8):
+        poly([(x, cy - r, cz - 0.4), (x, 0, cz - 0.4), (x, 0, cz + 0.4), (x, cy - r, cz + 0.4)], 0.6)
+    # шлемовая линия: верх колонны → ёмкость
+    poly([(0, H + R, 0), (0, H + R + 0.5, 0), (cx, H + R + 0.5, 0), (cx, H + R + 0.5, cz),
+          (cx, cy + r, cz)], 0.9)
+    # сетка пола
+    for i in range(-3, 6):
+        poly([(i, -0.6, -2.5), (i, -0.6, 3.5)], 0.45)
+    for k in [v * 1.0 - 2.5 for v in range(7)]:
+        poly([(-3, -0.6, k), (5, -0.6, k)], 0.45)
+
+    xs = [x for pts, _ in segs for x, _ in pts]
+    ys = [y for pts, _ in segs for _, y in pts]
+    sc = width / (max(xs) - min(xs))
+    x0, y0 = min(xs), min(ys)
+    out = []
+    for pts, w in segs:
+        d = " ".join(f"{'M' if i == 0 else 'L'}{(x - x0) * sc:.2f} {(y - y0) * sc:.2f}"
+                     for i, (x, y) in enumerate(pts))
+        out.append(f'<path d="{d}" stroke-width="{w}"/>')
+    g = (f'<g fill="none" stroke="{BLUE_LIGHT}" stroke-linecap="round" stroke-linejoin="round">'
+         + "".join(out) + "</g>")
+    return g, (max(ys) - y0) * sc, lambda x, y, z: ((P(x, y, z)[0] - x0) * sc, (P(x, y, z)[1] - y0) * sc)
+
+
+def s3_front():
+    g, h = logo("tsoft-logo-ru-inverse", 0, 0, 90)
+    return doc(90, round(h, 2), g, "3 — грудь: логотип Т-Софт, 90 мм")
+
+
+def s3_back():
+    W = 270
+    parts = [text("3D-МОДЕЛЬ · VR-ТРЕНАЖЁР", "Inter-SemiBold", 7.4, 0, 7, BLUE_LIGHT, "start", 0.12)]
+    g, h, P = wireframe(W)
+    parts.append(f'<g transform="translate(0 18)">{g}</g>')
+    # выноска с позицией аппарата
+    tx, ty = P(-1.25, 4.3, 0)
+    ty += 18
+    parts.append(f'<path fill="none" stroke="{WHITE}" stroke-width="0.6" d="M{tx:.1f} {ty:.1f} L{tx-18:.1f} {ty-12:.1f} H{tx-34:.1f}"/>')
+    parts.append(f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="1.4" fill="{WHITE}"/>')
+    parts.append(text("К-1", "Inter-SemiBold", 7, tx - 36, ty - 10.5, WHITE, "end"))
+    # гизмо осей
+    gx, gy = W - 32, 36
+    for (dx, dy, lab) in ((18, 0, "X"), (0, -18, "Y"), (-11, 9, "Z")):
+        parts.append(f'<path stroke="{WHITE}" stroke-width="1" d="M{gx} {gy} l{dx} {dy}"/>')
+        parts.append(text(lab, "Inter-SemiBold", 5.4, gx + dx * 1.3, gy + dy * 1.3 + 1.6, WHITE, "middle"))
+    y = 18 + h + 26
+    cap = "Навык переносится в работу."
+    size = min(21, 21 * W / measure(cap, "InterDisplay-Bold", 21, -0.01))
+    parts.append(text(cap, "InterDisplay-Bold", size, 0, y, WHITE, "start", -0.01))
+    return doc(W, round(y + 5, 2), "\n".join(parts), "3 — спина: каркасная модель")
+
+
+# ---------------------------------------------------------------- 5 «Шильдик»
+
+def s5_front():
+    W, H, hb_ = 96, 62, 15
+    p = [f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="3" fill="{WHITE}" stroke="{NAVY}" stroke-width="1"/>',
+         f'<path fill="{NAVY}" d="M0.5 {hb_} V3.5 a3 3 0 0 1 3 -3 H{W-3.5} a3 3 0 0 1 3 3 V{hb_}Z"/>']
+    g, lh = logo("tsoft-logo-ru-inverse", 8, (hb_ - 7.5) / 2 + 0.5, 7.5 * 3.816)
+    p.append(g)
+    p.append(text("ТРЕНАЖЁРНЫЙ КОМПЛЕКС", "Inter-SemiBold", 2.9, W - 8, hb_ / 2 + 1.6, BLUE_LIGHT, "end", 0.1))
+    rows = [("ИЗДЕЛИЕ", "Инженер-разработчик"), ("ЗАВ. №", "0042"),
+            ("ГОД ВЫПУСКА", "2026"), ("РЕЖИМ", "штатный")]
+    y = hb_ + 4
+    for i, (k, v) in enumerate(rows):
+        yb = y + 7
+        p.append(text(k, "Inter-SemiBold", 3.0, 8, yb, BLUE, "start", 0.1))
+        p.append(text(v, "Inter-Medium", 4.4, 36, yb + 0.2, NAVY, "start", 0,
+                      {"kern": True, "tnum": True}))
+        if i < len(rows) - 1:
+            p.append(f'<rect x="8" y="{yb+3.1:.2f}" width="{W-16}" height="0.4" fill="{NAVY}"/>')
+        y += 10.3
+    for cx, cy in ((4, hb_ + 4), (W - 4, hb_ + 4), (4, H - 4), (W - 4, H - 4)):
+        p.append(f'<circle cx="{cx}" cy="{cy}" r="1.5" fill="none" stroke="{NAVY}" stroke-width="0.5"/>'
+                 f'<path stroke="{NAVY}" stroke-width="0.5" d="M{cx-1} {cy} H{cx+1}"/>')
+    return doc(W, H, "\n".join(p), "5 — грудь: шильдик, поля «Изделие» и «Зав. №» персонализируются")
+
+
+def s5_back():
+    g, h = logo("tsoft-icon-color", 0, 0, 30)
+    return doc(30, round(h, 2), g, "5 — спина: знак под воротом, 30 мм")
 
 
 # ---------------------------------------------------------------- мокап
@@ -289,21 +433,37 @@ def c_back():
 # Силуэт футболки размера L (мм, вид спереди/сзади); полуобхват груди 520 мм.
 SHIRT = ("M290 40 Q380 {neck} 470 40 L630 78 L748 252 L664 304 L640 266 "
          "L646 742 Q380 754 114 742 L120 266 L96 304 L12 252 L130 78Z")
+GREY = "#C9CED6"
 
+# ключ, название, ткань, ширина груди, ширина спины, верх спины, описание, для кого, печать
 CONCEPTS = [
-    ("A", "Слоган", NAVY, "Тёмно-синяя футболка. Логотип на груди, слоган «Готовы до того, как случится» на спине.",
-     "Конференции, выставки, подарки заказчикам", "2 цвета: белый, #89B2FF (+ #015AFD в знаке логотипа)"),
-    ("B", "Схема", NAVY, "Знак на груди, на спине технологическая схема ректификации и ключевое сообщение «Модель, а не картинка».",
-     "Команда разработки, инженеры, отраслевые мероприятия", "3 цвета: #89B2FF, белый, #015AFD"),
-    ("C", "Журнал тренажёра", "#F4F6F9", "Белая футболка. На спине журнал событий учебного сценария, который закрывается строкой «Сценарий пройден».",
-     "Внутренний мерч, тимбилдинги, хакатоны, стажёры", "2 цвета: #0A2646, #015AFD (+ #2B2A29 в логотипе)"),
+    ("1", "Тон в тон", NAVY, 40, 270, 125,
+     "Минимум бренда: знак вышит на груди, слоган напечатан на спине краской на тон светлее ткани. Читается вблизи, издалека выглядит однотонной вещью.",
+     "Подарки заказчикам и партнёрам, руководители, деловые мероприятия",
+     "Вышивка белой нитью (грудь); тональная краска + #89B2FF, белый (спина)"),
+    ("2", "Схема", NAVY, 55, 280, 125,
+     "На спине технологическая схема ректификации: колонна, насосы, КИП. Ключевое сообщение «Модель, а не картинка».",
+     "Инженеры, разработчики моделей, отраслевые конференции",
+     "#89B2FF, белый, #015AFD (знак)"),
+    ("3", "Каркас", NAVY, 90, 270, 125,
+     "Каркасная 3D-модель колонны с площадками, лестницей и ёмкостью, оси как во вьюпорте редактора. Сообщение «Навык переносится в работу».",
+     "Направление 3D/VR, выставки с VR-демо, HR-бренд для 3D-художников и Unity-разработчиков",
+     "#89B2FF, белый, #015AFD (знак)"),
+    ("4", "Журнал тренажёра", "#F4F6F9", 100, 280, 125,
+     "Журнал событий учебного сценария на спине: от отклонения до штатного режима, итог «Сценарий пройден».",
+     "Внутренний мерч, стажёры, хакатоны, дни открытых дверей",
+     "#0A2646, #015AFD (+ #2B2A29 в логотипе)"),
+    ("5", "Шильдик", GREY, 96, 30, 95,
+     "Шильдик оборудования на груди. Поля «Изделие» и «Зав. №» заполняются под сотрудника: роль и личный номер.",
+     "Сотрудники (персональный мерч), онбординг, юбилеи стажа",
+     "Белый, #0A2646, #015AFD; персональные поля — DTF"),
 ]
 
 
 def shirt(fabric, side, art, art_w, art_x, art_y):
     light = fabric != NAVY
-    stroke = "#C9D1DC" if light else "#16365E"
-    shade = "#E3E8EF" if light else "#071D37"
+    stroke = "#B4BCC8" if light else "#16365E"
+    shade = "#D5DBE3" if fabric == "#F4F6F9" else ("#B9BFC9" if light else "#071D37")
     neck = 112 if side == "front" else 64
     inner = f"M290 40 Q380 {neck} 470 40"
     return f"""<svg viewBox="0 0 760 780" xmlns="http://www.w3.org/2000/svg">
@@ -315,20 +475,21 @@ def shirt(fabric, side, art, art_w, art_x, art_y):
 </svg>"""
 
 
+def art_path(key, side):
+    return f"print/2026-10-08_tsoft-tshirt_{key}_{side}.svg"
+
+
 def mockup():
     cards = []
-    for key, name, fabric, desc, use, colors in CONCEPTS:
-        front = f"print/2026-10-08_tsoft-tshirt_{key}_front.svg"
-        back = f"print/2026-10-08_tsoft-tshirt_{key}_back.svg"
-        fw = 55 if key == "B" else 100
-        cards.append(f"""<section class="card">
+    for key, name, fabric, fw, bw, by, desc, use, colors in CONCEPTS:
+        cards.append(f"""<section class="card" data-key="{key}">
   <div class="kicker">КОНЦЕПЦИЯ {key}</div><h2>{name}</h2>
   <div class="pair">
-    <figure>{shirt(fabric, "front", front, fw, 475 - fw / 2, 170)}<figcaption>Перед</figcaption></figure>
-    <figure>{shirt(fabric, "back", back, 280, 240, 125)}<figcaption>Спина</figcaption></figure>
+    <figure>{shirt(fabric, "front", art_path(key, "front"), fw, 475 - fw / 2, 165)}<figcaption>Перед</figcaption></figure>
+    <figure>{shirt(fabric, "back", art_path(key, "back"), bw, 380 - bw / 2, by)}<figcaption>Спина</figcaption></figure>
   </div>
   <p>{desc}</p>
-  <dl><dt>Для чего</dt><dd>{use}</dd><dt>Цвета печати</dt><dd>{colors}</dd></dl>
+  <dl><dt>Для кого</dt><dd>{use}</dd><dt>Печать</dt><dd>{colors}</dd></dl>
 </section>""")
     return f"""<!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
@@ -359,7 +520,7 @@ dt {{ font-weight: 600; }} dd {{ margin: 0; }}
 </style></head>
 <body>
 <header><div class="kicker">МЕРЧ · ФУТБОЛКИ · 2026</div><h1>Футболки Т-Софт</h1>
-<p>Три концепции в фирменном стиле: палитра brand tokens v2.0, Inter, оригинальные файлы логотипа. Печатные файлы в папке print/ в масштабе 1:1, текст в кривых.</p></header>
+<p>Пять концепций в фирменном стиле: палитра brand tokens v2.0, Inter, оригинальные файлы логотипа. Печатные файлы в папке print/ в масштабе 1:1, текст в кривых.</p></header>
 <main>
 {chr(10).join(cards)}
 </main>
@@ -369,14 +530,12 @@ dt {{ font-weight: 600; }} dd {{ margin: 0; }}
 
 # ---------------------------------------------------------------- сборка
 
-ARTS = {
-    "A_front": a_front, "A_back": a_back,
-    "B_front": b_front, "B_back": b_back,
-    "C_front": c_front, "C_back": c_back,
-}
+ARTS = {f"{k}_{side}": globals()[f"s{k}_{side}"] for k in "12345" for side in ("front", "back")}
 
 if __name__ == "__main__":
     PRINT.mkdir(exist_ok=True)
+    for old in PRINT.glob("*.svg"):
+        old.unlink()
     for name, fn in ARTS.items():
         out = PRINT / f"2026-10-08_tsoft-tshirt_{name}.svg"
         out.write_text(fn())
